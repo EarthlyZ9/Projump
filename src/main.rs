@@ -37,7 +37,7 @@ fn main() {
             "-a" => {
                 let cwd: String = env::current_dir().unwrap().to_string_lossy().into_owned();
                 let mut force: bool = false;
-                if command.contains("--force") {
+                if args[args.len() - 1] == "--force" {
                     force = true;
                 }
                 actions::set(&mut aliases, &args[1], cwd, force)
@@ -46,17 +46,19 @@ fn main() {
             "-m" => actions::update(&mut aliases, &args[1], &args[2]),
             v => {
                 // check valid path
-                let path_input: &Path = Path::new(v);
-                let is_valid: bool = path_input.is_dir();
+                let path: &Path = Path::new(v);
+                let is_valid: bool = path.is_dir();
                 if is_valid == true && &args[1] == "-a" {
                     let mut force: bool = false;
-                    if command.contains("--force") {
+                    if args[args.len() - 1] == "--force" {
                         force = true;
                     }
-                    // 절대 경로인 경우
-                    actions::set(&mut aliases, &args[2], args[0].to_owned(), force)
 
-                    // TODO: 상대경로인 경우
+                    if path.is_absolute() {
+                        actions::set(&mut aliases, &args[2], args[0].to_owned(), force)
+                    } else {
+                        actions::set(&mut aliases, &args[2], path.canonicalize().unwrap().to_str().unwrap().to_string(), force)
+                    }
                     
                 } else {
                     eprintln!("No such directory: {}", v); 

@@ -1,20 +1,8 @@
-use std::fmt::{self};
 use std::fs::{File, read_to_string};
 use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::collections::HashMap;
 use crate::{ROOT, DATA_FILE_NAME};
-
-pub struct ProjectAlias {
-    alias: String,
-    path: String,
-}
-
-impl fmt::Display for ProjectAlias {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} --> {}", self.alias, self.path)
-    }
-}
 
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -83,7 +71,7 @@ pub fn set(data: &mut HashMap<String, String>, key: &str, path: String, force: b
             data.insert(key.to_owned(), path);
         },
         Some(_v) => {
-            if force {
+            if force == true {
                 data.insert(key.to_owned(), path);
             } else {
                 eprintln!("Alias \'{}\' already exists. Use \'--force\' to override.", key);

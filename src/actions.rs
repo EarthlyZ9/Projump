@@ -1,12 +1,13 @@
+use std::collections::HashMap;
+use std::env;
 use std::fs::{File, read_to_string};
 use std::io::{self, BufRead, Write};
 use std::path::Path;
-use std::collections::HashMap;
-use crate::{ROOT, DATA_FILE_NAME};
 
+use crate::DATA_FILE_NAME;
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
+    where P: AsRef<Path>, {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
@@ -34,8 +35,8 @@ pub fn make_hashmap(path: &str) -> HashMap<String, String> {
 }
 
 fn rewrite_file(data: &mut HashMap<String, String>) -> Result<(), io::Error> {
-    let file_path = ROOT.to_owned() + "/" + DATA_FILE_NAME;
-    let mut file = File::create(file_path)?;
+    let data_file_path = format!("{}/{}", env::var("PROJUMP").unwrap(), DATA_FILE_NAME);
+    let mut file = File::create(&data_file_path)?;
     for (a, p) in data.iter() {
         writeln!(file, "{} {}", a, p)?;
     }
@@ -44,9 +45,9 @@ fn rewrite_file(data: &mut HashMap<String, String>) -> Result<(), io::Error> {
 }
 
 pub fn list() {
-    let file_path = ROOT.to_owned() + "/" + DATA_FILE_NAME;
-    let contents = read_to_string(file_path).expect("Should have been able to read the file");
-        println!("{}", contents)
+    let data_file_path = format!("{}/{}", env::var("PROJUMP").unwrap(), DATA_FILE_NAME);
+    let contents = read_to_string(&data_file_path).expect("Should have been able to read the file");
+    println!("{}", contents)
 }
 
 pub fn delete(data: &mut HashMap<String, String>, key: &str) {
@@ -69,14 +70,13 @@ pub fn set(data: &mut HashMap<String, String>, key: &str, path: String, force: b
     match data.get(key) {
         None => {
             data.insert(key.to_owned(), path);
-        },
+        }
         Some(_v) => {
             if force == true {
                 data.insert(key.to_owned(), path);
             } else {
                 eprintln!("Alias \'{}\' already exists. Use \'--force\' to override.", key);
             }
-            
         }
     }
     let _ = rewrite_file(data);
